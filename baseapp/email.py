@@ -4,7 +4,7 @@ from django.conf import settings
 def send_email_code(email , code):
     send_mail(
         subject='Tasdiqlsh kodi',
-        message=f'Sizning tasdiqlash kodingiz: {code}',
+        message=f'Tasdiqlash uchun kod: {code}',
         from_email=settings.EMAIL_HOST_USER,
         recipient_list= [email],
         fail_silently= False

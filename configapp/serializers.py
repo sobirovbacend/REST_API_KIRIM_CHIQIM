@@ -1,3 +1,5 @@
+from subprocess import check_output
+
 from .models import *
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
@@ -5,11 +7,9 @@ from django.contrib.auth import authenticate
 from rest_framework.exceptions import ValidationError
 from baseapp.utility import *
 from baseapp.email import *
+from django.contrib.auth.password_validation import validate_password
 
 
-# auth_validate
-# create
-# validate_email_phone_number
 
 class SignUpSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
@@ -95,3 +95,128 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 class VerifyCodeSerializer(serializers.Serializer):
     code = serializers.CharField(max_length=6)
+
+
+class ChangeUserInfoSerializer(serializers.Serializer):
+    first_name = serializers.CharField(required=False)
+    last_name = serializers.CharField(required=False)
+    username = serializers.CharField(required=False)
+    password = serializers.CharField(required=True, write_only=True)
+    confirm_password = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, data):
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
+
+        if password and confirm_password and password != confirm_password:
+            raise ValidationError({
+                'success': False,
+                'message': 'Parollar mos emas'
+            })
+
+        if password:
+            validate_password(password)
+
+        return data
+
+    # boshqa validate metodlari o‘rnida qoladi
+
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get('username', instance.username)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+
+        password = validated_data.get('password', None)
+        if password:
+            instance.set_password(password)
+
+        if instance.auth_status == CODE_VERIFIED:
+            instance.auth_status = DONE
+
+        instance.save()
+        return instance
+
+
+class UserPhotoSerializer(serializers.Serializer):
+    photo = serializers.ImageField()
+    def update(self, instance, validated_data):
+        photo = validated_data.get('photo',None)
+        if photo:
+            instance.photo = photo
+            instance.auth_status = PHOTO_DONE
+
+        instance.save()
+        return instance
+
+
+
+
+
+class LoginSerializer(serializers.Serializer):
+    email_phone_number = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        login_input = data.get('email_phone_number')
+        password = data.get('password')
+
+        if not login_input or not password:
+            raise ValidationError({
+                'success': False,
+                'message': 'Email/telefon va parol majburiy'
+            })
+
+        input_type = email_or_phone(login_input)
+
+        if not input_type:
+            raise ValidationError({
+                'success': False,
+                'message': 'Email yoki telefon noto‘g‘ri formatda'
+            })
+
+        # =========================
+        # USERNI TOPISH
+        # =========================
+        if input_type == 'email':
+            user = User.objects.filter(email=login_input.lower()).first()
+        else:
+            phone = normalize_phone(login_input)
+            user = User.objects.filter(phone_number=phone).first()
+
+        if not user:
+            raise ValidationError({
+                'success': False,
+                'message': 'Foydalanuvchi topilmadi'
+            })
+
+        # =========================
+        # AUTH STATUS TEKSHIRISH
+        # =========================
+        if user.auth_status not in [DONE, PHOTO_DONE]:
+            raise ValidationError({
+                'success': False,
+                'message': 'Ro‘yxatdan o‘tish yakunlanmagan'
+            })
+
+        # =========================
+        # PAROL TEKSHIRISH
+        # =========================
+        if not user.check_password(password):
+            raise ValidationError({
+                'success': False,
+                'message': 'Parol noto‘g‘ri'
+            })
+
+        data['user'] = user
+        return data
+
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+
+
+
+
+

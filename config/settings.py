@@ -1,5 +1,3 @@
-
-
 from pathlib import Path
 from datetime import timedelta
 from django.conf.global_settings import AUTH_USER_MODEL, MEDIA_ROOT, MEDIA_URL

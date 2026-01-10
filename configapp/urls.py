@@ -1,4 +1,4 @@
-from django.urls import path , include
+from django.urls import path, include
 from configapp.views import *
 from django.conf import settings
 from django.conf.urls.static import static
@@ -10,17 +10,21 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-
-
-
 router = DefaultRouter()
-
 
 urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('', include(router.urls)),
-    path('signup/' , SignUpView.as_view()),
-    path('code-verify/' , VerifyCode.as_view()),
+
+    path('signup/', SignUpView.as_view()),
+    path('code-verify/', VerifyCode.as_view()),
+    path('new-code-verify/', NewCodeVerify.as_view()),
+    path('change-user-info/', ChangeUserInfo.as_view()),
+    path('UserPhotoView', UserPhotoView.as_view()),
+    path('login/', LoginView.as_view()),
+
+    path('logout/', LogoutView.as_view(), name='logout'),
+
 ]
