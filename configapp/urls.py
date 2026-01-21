@@ -12,19 +12,20 @@ from rest_framework_simplejwt.views import (
 
 router = DefaultRouter()
 
+
 urlpatterns = [
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    path('', include(router.urls)),
-
-    path('signup/', SignUpView.as_view()),
-    path('code-verify/', VerifyCode.as_view()),
-    path('new-code-verify/', NewCodeVerify.as_view()),
-    path('change-user-info/', ChangeUserInfo.as_view()),
-    path('UserPhotoView', UserPhotoView.as_view()),
-    path('login/', LoginView.as_view()),
-
-    path('logout/', LogoutView.as_view(), name='logout'),
-
+    # =====================
+    # AUTH
+    # =====================
+    path('auth/signup/', SignUpView.as_view(), name='signup'),
+    path('auth/verify-code/', VerifyCode.as_view(), name='verify-code'),
+    path('auth/new-code/', NewCodeVerify.as_view(), name='new-code'),
+    path('auth/login/', LoginView.as_view(), name='login'),
+    path('auth/logout/', LogoutView.as_view(), name='logout'),
+    path('user/update/ChangeUserInfo/', ChangeUserInfoView.as_view(), name='user-update'),
+    path('user/photo/', UserPhotoView.as_view(), name='user-photo'),
+    path('hisoblar/', AccountAPIView.as_view(), name='accounts'),
+    path('Kirimlar/', IncomeAPIView.as_view(), name='incomes'),
+    path('Chiqimlar/', ExpenseAPIView.as_view(), name='expenses'),
+    path('hisobotlar/', ReportAPIView.as_view(), name='report'),
 ]
